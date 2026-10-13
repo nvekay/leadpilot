@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -52,9 +53,25 @@ export async function retryLead(id: string): Promise<ActionState> {
   return { ok: 'Retrying…' };
 }
 
+/** The visitor's address as seen by the hosting proxy; the API caps website leads per visitor */
+async function visitorIp() {
+  const h = await headers();
+  return h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip') || undefined;
+}
+
+/** Turns a refused website lead into a message for the visitor */
+const intakeError = (e: unknown, fallback: string): ActionState => ({
+  error: e instanceof ApiError && e.status === 429 ? e.message : fallback,
+});
+
 /** Public demo: sends a sample email into the pipeline and opens it */
-export async function sendSample(sampleId: string) {
-  const { id } = await api.sendDemo(sampleId);
+export async function sendSample(sampleId: string): Promise<ActionState> {
+  let id: string;
+  try {
+    ({ id } = await api.sendDemo(sampleId, await visitorIp()));
+  } catch (e) {
+    return intakeError(e, 'Could not send the email, try again.');
+  }
   redirect(`/leads/${id}`);
 }
 
@@ -78,9 +95,9 @@ export async function submitQuoteForm(_prev: ActionState, data: FormData): Promi
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the form' };
   let id: string;
   try {
-    ({ id } = await api.submitForm(parsed.data));
-  } catch {
-    return { error: 'Could not send the form, try again.' };
+    ({ id } = await api.submitForm(parsed.data, await visitorIp()));
+  } catch (e) {
+    return intakeError(e, 'Could not send the form, try again.');
   }
   redirect(`/leads/${id}`);
 }

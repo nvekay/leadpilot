@@ -25,6 +25,9 @@ const schema = z.object({
   RESEND_API_KEY: z.string().startsWith('re_').optional(),
   MAIL_FROM: z.string().default('Northwind Studio <onboarding@resend.dev>'),
   MAIL_REDIRECT_TO: z.email().optional(),
+  // Caps on leads from the public website: per visitor per hour, and for everyone per day
+  DEMO_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
+  DEMO_LIMIT_PER_DAY: z.coerce.number().int().positive().default(300),
   PIPELINE_RETRY_DELAY_MS: z.coerce.number().int().positive().default(5000),
 });
 

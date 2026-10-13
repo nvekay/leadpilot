@@ -12,11 +12,16 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+async function call<T>(path: string, init: { method?: string; body?: unknown; visitorIp?: string } = {}): Promise<T> {
   const { API_URL, API_INTERNAL_KEY } = env();
   const res = await fetch(`${API_URL}${path}`, {
     method: init.method ?? 'GET',
-    headers: { 'x-api-key': API_INTERNAL_KEY, 'content-type': 'application/json' },
+    headers: {
+      'x-api-key': API_INTERNAL_KEY,
+      'content-type': 'application/json',
+      // Lets the API rate-limit website leads per visitor (it only trusts this with the internal key)
+      ...(init.visitorIp ? { 'x-visitor-ip': init.visitorIp } : {}),
+    },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     cache: 'no-store',
   });
@@ -41,7 +46,10 @@ export const api = {
   settings: () => call<WorkspaceSettings>('/settings'),
   saveSettings: (s: WorkspaceSettings) => call<WorkspaceSettings>('/settings', { method: 'PUT', body: s }),
   demoSamples: () => call<DemoSample[]>('/intake/demo'),
-  sendDemo: (sampleId: string) => call<{ id: string }>('/intake/demo', { method: 'POST', body: { sampleId } }),
-  submitForm: (form: { submissionId: string; name: string; email: string; company?: string; message: string }) =>
-    call<{ id: string; duplicate: boolean }>('/intake/form', { method: 'POST', body: form }),
+  sendDemo: (sampleId: string, visitorIp?: string) =>
+    call<{ id: string }>('/intake/demo', { method: 'POST', body: { sampleId }, visitorIp }),
+  submitForm: (
+    form: { submissionId: string; name: string; email: string; company?: string; message: string },
+    visitorIp?: string,
+  ) => call<{ id: string; duplicate: boolean }>('/intake/form', { method: 'POST', body: form, visitorIp }),
 };

@@ -1,4 +1,14 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, NotFoundException, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Headers,
+  HttpCode,
+  NotFoundException,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { safeEqual } from '../common/internal-key.guard.js';
@@ -6,6 +16,7 @@ import { Public } from '../common/public.decorator.js';
 import { parse } from '../common/zod.js';
 import { env } from '../config/env.js';
 import { LeadsService } from '../leads/leads.service.js';
+import { RateLimitService } from '../limits/rate-limit.service.js';
 import { PipelineQueue } from '../pipeline/pipeline.queue.js';
 import { DEMO_MESSAGES } from './demo-messages.js';
 
@@ -32,12 +43,31 @@ export class IntakeController {
   constructor(
     private readonly leads: LeadsService,
     private readonly queue: PipelineQueue,
+    private readonly limits: RateLimitService,
   ) {}
+
+  /** Website leads (form and samples) cost model calls; the web server passes the visitor's IP */
+  private async limitVisitor(ip: string | undefined) {
+    const { DEMO_LIMIT_PER_HOUR, DEMO_LIMIT_PER_DAY } = env();
+    await this.limits.hit(
+      `visitor:${ip || 'unknown'}`,
+      DEMO_LIMIT_PER_HOUR,
+      3600,
+      'Too many leads from you this hour. Try again later.',
+    );
+    await this.limits.hit(
+      'website',
+      DEMO_LIMIT_PER_DAY,
+      86400,
+      'The demo has reached its daily limit. Try again tomorrow.',
+    );
+  }
 
   /** Website contact form, posted by the web app's server */
   @Post('form')
-  async form(@Body() body: unknown) {
+  async form(@Body() body: unknown, @Headers('x-visitor-ip') ip?: string) {
     const f = parse(formSchema, body);
+    await this.limitVisitor(ip);
     const message = f.company ? `Company: ${f.company}\n\n${f.message}` : f.message;
     return this.accept({
       source: 'form',
@@ -83,10 +113,11 @@ export class IntakeController {
 
   /** Sends one of the sample emails into the pipeline, for the public demo */
   @Post('demo')
-  async demo(@Body() body: unknown) {
+  async demo(@Body() body: unknown, @Headers('x-visitor-ip') ip?: string) {
     const { sampleId } = parse(z.object({ sampleId: z.string() }), body);
     const sample = DEMO_MESSAGES.find((m) => m.id === sampleId);
     if (!sample) throw new NotFoundException('Unknown sample');
+    await this.limitVisitor(ip);
     return this.accept({
       source: 'demo',
       // Every click is a new lead, so visitors can send the same sample again

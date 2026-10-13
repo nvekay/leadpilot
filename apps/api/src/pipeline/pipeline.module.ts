@@ -6,6 +6,7 @@ import { HubSpotCrm } from '../crm/hubspot-crm.js';
 import { ResendMailer } from '../mail/resend-mailer.js';
 import { SlackNotifier } from '../slack/slack-notifier.js';
 import { LeadsService } from '../leads/leads.service.js';
+import { RateLimitService } from '../limits/rate-limit.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { FakeCrm, FakeLeadAi, FakeMailer, FakeNotifier } from './fakes.js';
 import { PipelineProcessor } from './pipeline.processor.js';
@@ -22,6 +23,7 @@ import { QUEUE } from './steps.js';
     PipelineQueue,
     PipelineService,
     PipelineProcessor,
+    RateLimitService,
     {
       provide: LEAD_AI,
       // Keyword rules stand in for Claude when no API key is set (offline development, CI)
@@ -56,6 +58,6 @@ import { QUEUE } from './steps.js';
       },
     },
   ],
-  exports: [LeadsService, SettingsService, PipelineQueue, PipelineService],
+  exports: [LeadsService, SettingsService, PipelineQueue, PipelineService, RateLimitService],
 })
 export class PipelineModule {}

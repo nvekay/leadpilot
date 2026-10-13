@@ -13,3 +13,5 @@ delete process.env.SLACK_CHANNEL_ID;
 process.env.SLACK_SIGNING_SECRET = 'test-slack-signing-secret';
 delete process.env.RESEND_API_KEY;
 delete process.env.MAIL_REDIRECT_TO;
+process.env.DEMO_LIMIT_PER_HOUR = '3';
+process.env.DEMO_LIMIT_PER_DAY = '1000';

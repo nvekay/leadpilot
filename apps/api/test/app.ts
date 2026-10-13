@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Queue } from 'bullmq';
 import { sql } from 'drizzle-orm';
+import { Redis } from 'ioredis';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { DB, type Db } from '../src/db/db.module.js';
@@ -80,6 +81,14 @@ export async function createTestApp() {
         .send(body ?? {}),
   };
 
+  // Separate connection for clearing rate-limit counters between tests
+  const redis = new Redis(process.env.REDIS_URL!);
+  const close = app.close.bind(app);
+  app.close = async () => {
+    redis.disconnect();
+    await close();
+  };
+
   return {
     app,
     db,
@@ -93,6 +102,8 @@ export async function createTestApp() {
     async reset() {
       await db.execute(sql`truncate leads, lead_events, settings cascade`);
       await queue.obliterate({ force: true });
+      const counters = await redis.keys('ratelimit:*');
+      if (counters.length) await redis.del(...counters);
       crm.failuresLeft = 0;
       crm.calls = 0;
       mailer.sent.length = 0;

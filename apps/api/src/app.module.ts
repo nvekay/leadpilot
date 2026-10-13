@@ -7,6 +7,7 @@ import { DbModule } from './db/db.module.js';
 import { HealthController } from './health/health.controller.js';
 import { IntakeController } from './intake/intake.controller.js';
 import { LeadsController } from './leads/leads.controller.js';
+import { MaintenanceModule } from './maintenance/maintenance.module.js';
 import { PipelineModule } from './pipeline/pipeline.module.js';
 import { QueueController } from './queue/queue.controller.js';
 import { SettingsController } from './settings/settings.controller.js';
@@ -17,6 +18,7 @@ import { SlackController } from './slack/slack.controller.js';
     DbModule,
     BullModule.forRootAsync({ useFactory: () => ({ connection: { url: env().REDIS_URL } }) }),
     PipelineModule,
+    MaintenanceModule,
   ],
   controllers: [
     HealthController,

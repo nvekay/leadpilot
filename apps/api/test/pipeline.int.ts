@@ -155,6 +155,15 @@ describe('access', () => {
     expect(res.status).toBe(403);
   });
 
+  it('caps website leads per visitor, counting each visitor separately', async () => {
+    const send = (ip: string) => t.api.post('/intake/demo', { sampleId: 'spam' }).set('x-visitor-ip', ip);
+    for (let i = 0; i < 3; i++) expect((await send('203.0.113.7')).status).toBe(201);
+    const blocked = await send('203.0.113.7');
+    expect(blocked.status).toBe(429);
+    expect(blocked.body.message).toBe('Too many leads from you this hour. Try again later.');
+    expect((await send('198.51.100.4')).status).toBe(201);
+  });
+
   it('validates the website form', async () => {
     const res = await t.api.post('/intake/form', { submissionId: randomUUID(), name: '', email: 'not-an-email' });
     expect(res.status).toBe(400);
