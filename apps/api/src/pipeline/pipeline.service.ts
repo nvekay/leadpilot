@@ -149,14 +149,18 @@ export class PipelineService {
 
   /** A person approves the draft (optionally edited) in the app or in Slack */
   async approve(leadId: string, by: string, editedText?: string): Promise<Lead | null> {
-    const patch = editedText?.trim() ? { draftReply: editedText.trim() } : {};
-    const lead = await this.leads.transition(leadId, 'awaiting_approval', 'approved', patch);
+    const current = await this.leads.get(leadId);
+    const text = editedText?.trim();
+    // The web app always sends the text box; it only counts as an edit when it differs from the draft
+    const edited = Boolean(text && current?.draftReply && text !== current.draftReply.trim());
+    const lead = await this.leads.transition(
+      leadId,
+      'awaiting_approval',
+      'approved',
+      edited ? { draftReply: text } : {},
+    );
     if (!lead) return null;
-    await this.leads.event(leadId, {
-      type: 'approved',
-      actor: 'user',
-      data: { by, edited: Boolean(patch.draftReply) },
-    });
+    await this.leads.event(leadId, { type: 'approved', actor: 'user', data: { by, edited } });
     await this.queue.enqueue('send', leadId);
     return lead;
   }

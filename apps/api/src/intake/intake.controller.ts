@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, HttpCode, NotFoundException, Post, Query } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, NotFoundException, Post, Query } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { safeEqual } from '../common/internal-key.guard.js';
@@ -66,6 +66,19 @@ export class IntakeController {
       subject: m.Subject || null,
       body: text || '(empty message)',
     });
+  }
+
+  /** The sample emails a visitor can send on the demo page */
+  @Get('demo')
+  samples() {
+    return DEMO_MESSAGES.map(({ id, label, fromName, fromEmail, subject, body }) => ({
+      id,
+      label,
+      fromName,
+      fromEmail,
+      subject,
+      preview: body.replace(/\s+/g, ' ').slice(0, 160),
+    }));
   }
 
   /** Sends one of the sample emails into the pipeline, for the public demo */

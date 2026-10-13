@@ -89,6 +89,15 @@ describe('lead pipeline', () => {
     expect(events.find((e) => e.type === 'approved')?.data).toEqual({ by: 'sam', edited: true });
   });
 
+  it('does not count an unchanged text box as an edit', async () => {
+    const id = await sendDemo('saas-dashboard');
+    const lead = await t.waitForStatus(id, 'awaiting_approval');
+    // Same text with trailing whitespace, as a textarea may send it
+    await t.api.post(`/leads/${id}/approve`, { by: 'sam', text: `${lead.draftReply}\n` });
+    const { events } = await t.lead(id);
+    expect(events.find((e) => e.type === 'approved')?.data).toEqual({ by: 'sam', edited: false });
+  });
+
   it('closes a rejected lead without sending anything', async () => {
     const id = await sendDemo('saas-dashboard');
     await t.waitForStatus(id, 'awaiting_approval');
