@@ -11,7 +11,8 @@
     "test": "vitest run --passWithNoTests",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file-if-exists=../../.env dist/db/migrate.js"
+    "db:migrate": "node --env-file-if-exists=../../.env dist/db/migrate.js",
+    "eval": "node --env-file-if-exists=../../.env --import tsx eval/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",
@@ -37,6 +38,7 @@
     "@types/supertest": "^7.0.0",
     "drizzle-kit": "^0.31.11",
     "supertest": "^7.0.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.4"
