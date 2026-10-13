@@ -1,4 +1,4 @@
-import { scoreLead } from '@leadpilot/shared';
+import { checkDraft, scoreLead } from '@leadpilot/shared';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Lead } from '../db/schema.js';
 import { LeadsService } from '../leads/leads.service.js';
@@ -103,15 +103,17 @@ export class PipelineService {
       calendarUrl,
       signature: replySignature,
     });
+    const warnings = checkDraft(draft.text, { calendarUrl, senderEmail: lead.fromEmail });
     const moved = await this.leads.transition(leadId, 'synced', 'awaiting_approval', {
       replySubject: draft.subject,
       draftReply: draft.text,
+      draftWarnings: warnings,
     });
     if (!moved) return 'skipped';
     await this.leads.event(leadId, {
       type: 'draft_ready',
       actor: 'llm',
-      data: { model: draft.usage.model, tokens: draft.usage.inputTokens + draft.usage.outputTokens },
+      data: { model: draft.usage.model, tokens: draft.usage.inputTokens + draft.usage.outputTokens, warnings },
       costUsd: draft.usage.costUsd,
       durationMs: draft.usage.durationMs,
     });

@@ -11,6 +11,10 @@ const schema = z.object({
   // Secret in the inbound email webhook URL (?token=...); the endpoint is off without it
   INBOUND_WEBHOOK_TOKEN: z.string().min(16).optional(),
   // First retry delay of a failed pipeline step; doubles on each attempt (tests use a few ms)
+  // Without a key the pipeline uses keyword rules instead of Claude (offline development)
+  ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
+  ANALYZE_MODEL: z.string().default('claude-haiku-5-5'),
+  DRAFT_MODEL: z.string().default('claude-sonnet-5-5'),
   PIPELINE_RETRY_DELAY_MS: z.coerce.number().int().positive().default(5000),
 });
 

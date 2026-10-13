@@ -6,3 +6,4 @@ process.env.API_INTERNAL_KEY = 'test-internal-key-0123456789';
 process.env.INBOUND_WEBHOOK_TOKEN = 'test-inbound-token-0123456789';
 process.env.PIPELINE_RETRY_DELAY_MS = '10';
 process.env.NODE_ENV = 'test';
+delete process.env.ANTHROPIC_API_KEY;

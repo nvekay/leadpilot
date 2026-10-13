@@ -38,6 +38,8 @@ export const leads = pgTable(
     crmDealId: text('crm_deal_id'),
     replySubject: text('reply_subject'),
     draftReply: text('draft_reply'),
+    // Problems found in the draft by plain checks (missing booking link, foreign links, leaked addresses)
+    draftWarnings: jsonb('draft_warnings').$type<string[]>(),
     repliedAt: timestamp('replied_at', { withTimezone: true }),
     error: text('error'),
     // Pipeline step that ran out of retries; Retry starts the lead again from there
