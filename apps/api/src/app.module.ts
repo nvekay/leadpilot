@@ -10,6 +10,7 @@ import { LeadsController } from './leads/leads.controller.js';
 import { PipelineModule } from './pipeline/pipeline.module.js';
 import { QueueController } from './queue/queue.controller.js';
 import { SettingsController } from './settings/settings.controller.js';
+import { SlackController } from './slack/slack.controller.js';
 
 @Module({
   imports: [
@@ -17,7 +18,14 @@ import { SettingsController } from './settings/settings.controller.js';
     BullModule.forRootAsync({ useFactory: () => ({ connection: { url: env().REDIS_URL } }) }),
     PipelineModule,
   ],
-  controllers: [HealthController, IntakeController, LeadsController, QueueController, SettingsController],
+  controllers: [
+    HealthController,
+    IntakeController,
+    LeadsController,
+    QueueController,
+    SettingsController,
+    SlackController,
+  ],
   providers: [{ provide: APP_GUARD, useClass: InternalKeyGuard }],
 })
 export class AppModule {}

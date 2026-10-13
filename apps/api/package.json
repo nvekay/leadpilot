@@ -12,7 +12,8 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=../../.env dist/db/migrate.js",
-    "eval": "node --env-file-if-exists=../../.env --import tsx eval/run.ts"
+    "eval": "node --env-file-if-exists=../../.env --import tsx eval/run.ts",
+    "hubspot:setup": "node --env-file-if-exists=../../.env --import tsx scripts/hubspot-setup.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.132.1",

@@ -1,7 +1,10 @@
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
 import { ClaudeLeadAi } from '../ai/claude-lead-ai.js';
 import { env } from '../config/env.js';
-import { Module } from '@nestjs/common';
+import { HubSpotCrm } from '../crm/hubspot-crm.js';
+import { ResendMailer } from '../mail/resend-mailer.js';
+import { SlackNotifier } from '../slack/slack-notifier.js';
 import { LeadsService } from '../leads/leads.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { FakeCrm, FakeLeadAi, FakeMailer, FakeNotifier } from './fakes.js';
@@ -29,10 +32,29 @@ import { QUEUE } from './steps.js';
           : new FakeLeadAi();
       },
     },
-    // Offline stand-ins until the HubSpot, mail and Slack adapters are configured
-    { provide: CRM, useClass: FakeCrm },
-    { provide: MAILER, useClass: FakeMailer },
-    { provide: NOTIFIER, useClass: FakeNotifier },
+    // Each integration falls back to an offline stand-in until its credentials are set
+    {
+      provide: CRM,
+      useFactory: () => (env().HUBSPOT_TOKEN ? new HubSpotCrm(env().HUBSPOT_TOKEN!) : new FakeCrm()),
+    },
+    {
+      provide: MAILER,
+      useFactory: () => {
+        const e = env();
+        return e.RESEND_API_KEY
+          ? new ResendMailer(e.RESEND_API_KEY, e.MAIL_FROM, e.MAIL_REDIRECT_TO)
+          : new FakeMailer();
+      },
+    },
+    {
+      provide: NOTIFIER,
+      useFactory: () => {
+        const e = env();
+        return e.SLACK_BOT_TOKEN && e.SLACK_CHANNEL_ID
+          ? new SlackNotifier(e.SLACK_BOT_TOKEN, e.SLACK_CHANNEL_ID, e.WEB_URL)
+          : new FakeNotifier();
+      },
+    },
   ],
   exports: [LeadsService, SettingsService, PipelineQueue, PipelineService],
 })

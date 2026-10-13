@@ -65,7 +65,7 @@ export async function createTestApp() {
     .overrideProvider(NOTIFIER)
     .useValue(notifier)
     .compile();
-  const app: INestApplication = moduleRef.createNestApplication();
+  const app: INestApplication = moduleRef.createNestApplication({ rawBody: true });
   await app.init();
 
   const db = app.get<Db>(DB);

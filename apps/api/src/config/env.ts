@@ -15,6 +15,16 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().startsWith('sk-ant-').optional(),
   ANALYZE_MODEL: z.string().default('claude-haiku-5-5'),
   DRAFT_MODEL: z.string().default('claude-sonnet-5-5'),
+  // HubSpot private app token (scopes: crm.objects.contacts/companies/deals read+write, crm.schemas.deals write)
+  HUBSPOT_TOKEN: z.string().optional(),
+  // Slack app: bot token with chat:write, the channel for approvals, and the signing secret for button clicks
+  SLACK_BOT_TOKEN: z.string().startsWith('xoxb-').optional(),
+  SLACK_CHANNEL_ID: z.string().optional(),
+  SLACK_SIGNING_SECRET: z.string().optional(),
+  // Outgoing replies through Resend; MAIL_REDIRECT_TO sends every reply to one address (the public demo)
+  RESEND_API_KEY: z.string().startsWith('re_').optional(),
+  MAIL_FROM: z.string().default('Northwind Studio <onboarding@resend.dev>'),
+  MAIL_REDIRECT_TO: z.email().optional(),
   PIPELINE_RETRY_DELAY_MS: z.coerce.number().int().positive().default(5000),
 });
 
