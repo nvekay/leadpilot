@@ -1,0 +1,34 @@
+{
+  "name": "leadpilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.10.1",
+  "description": "AI lead intake: inbound emails and form leads are parsed and scored by Claude, synced to HubSpot, and answered after a human approves (NestJS, BullMQ, Next.js)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @leadpilot/shared build && pnpm --parallel --filter @leadpilot/api --filter @leadpilot/web dev",
+    "build": "pnpm -r build",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:generate": "pnpm --filter @leadpilot/api db:generate",
+    "db:migrate": "pnpm --filter @leadpilot/api db:migrate",
+    "lint": "eslint .",
+    "typecheck": "pnpm --filter @leadpilot/shared build && pnpm -r typecheck",
+    "test": "pnpm --filter @leadpilot/shared build && pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "3.9.9",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.71.2"
+  }
+}
