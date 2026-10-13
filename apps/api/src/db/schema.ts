@@ -36,9 +36,12 @@ export const leads = pgTable(
     crmContactId: text('crm_contact_id'),
     crmCompanyId: text('crm_company_id'),
     crmDealId: text('crm_deal_id'),
+    replySubject: text('reply_subject'),
     draftReply: text('draft_reply'),
     repliedAt: timestamp('replied_at', { withTimezone: true }),
     error: text('error'),
+    // Pipeline step that ran out of retries; Retry starts the lead again from there
+    failedStep: text('failed_step'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()

@@ -8,6 +8,10 @@ const schema = z.object({
   // Shared secret between the web app's server and this API; the browser never sees it
   API_INTERNAL_KEY: z.string().min(16),
   WEB_URL: z.url().default('http://localhost:3000'),
+  // Secret in the inbound email webhook URL (?token=...); the endpoint is off without it
+  INBOUND_WEBHOOK_TOKEN: z.string().min(16).optional(),
+  // First retry delay of a failed pipeline step; doubles on each attempt (tests use a few ms)
+  PIPELINE_RETRY_DELAY_MS: z.coerce.number().int().positive().default(5000),
 });
 
 export type Env = z.infer<typeof schema>;

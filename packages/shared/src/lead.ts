@@ -2,13 +2,14 @@ import { z } from 'zod';
 
 /**
  * Where a lead is in the pipeline. The happy path is
- * received → analyzed → synced → awaiting_approval → replied.
+ * received → analyzed → synced → awaiting_approval → approved → replied.
  */
 export const LEAD_STATUSES = [
   'received',
   'analyzed',
   'synced',
   'awaiting_approval',
+  'approved',
   'replied',
   'rejected',
   'ignored',
