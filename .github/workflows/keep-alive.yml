@@ -12,4 +12,4 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - run: curl --fail --silent --show-error --max-time 90 --retry 2 https://leadpilot-api.onrender.com/health/live
+      - run: curl --fail --silent --show-error --max-time 90 --retry 2 https://leadpilot-api-ick9.onrender.com/health/live

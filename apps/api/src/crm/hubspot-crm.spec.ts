@@ -3,7 +3,7 @@ import type { Lead } from '../db/schema.js';
 import { companyDomain, HubSpotCrm, HubSpotError, LEAD_ID_PROPERTY } from './hubspot-crm.js';
 
 /** A tiny in-memory HubSpot: enough of the CRM API to check what the adapter sends */
-function fakeHubSpot() {
+function fakeHubSpot(searchSpacingMs = 0) {
   type Stored = { id: string; properties: Record<string, string>; associations?: unknown };
   const store: Record<'contacts' | 'companies' | 'deals' | 'notes', Stored[]> = {
     contacts: [],
@@ -12,6 +12,7 @@ function fakeHubSpot() {
     notes: [],
   };
   const calls: string[] = [];
+  const searchTimes: number[] = [];
   let nextId = 100;
   let failWith: number | null = null;
 
@@ -19,6 +20,7 @@ function fakeHubSpot() {
     const path = url.replace('https://api.hubapi.com', '');
     const method = init?.method ?? 'GET';
     calls.push(`${method} ${path}`);
+    if (path.endsWith('/search')) searchTimes.push(Date.now());
     if (failWith) return new Response('{"message":"rate limited"}', { status: failWith });
     const body = typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
     const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status });
@@ -52,8 +54,9 @@ function fakeHubSpot() {
   return {
     store,
     calls,
+    searchTimes,
     fail: (status: number | null) => (failWith = status),
-    crm: new HubSpotCrm('pat-test', fetchImpl as unknown as typeof fetch),
+    crm: new HubSpotCrm('pat-test', fetchImpl as unknown as typeof fetch, undefined, searchSpacingMs),
   };
 }
 
@@ -154,6 +157,23 @@ describe('HubSpotCrm', () => {
     const h = fakeHubSpot();
     h.fail(429);
     await expect(h.crm.syncLead(lead(), analysis(), 85)).rejects.toBeInstanceOf(HubSpotError);
+  });
+
+  it('spaces out searches so parallel syncs stay under the per-second limit', async () => {
+    const h = fakeHubSpot(40);
+    await Promise.all([
+      h.crm.syncLead(lead(), analysis(), 85),
+      h.crm.syncLead(
+        lead({ id: '22222222-2222-2222-2222-222222222222', fromEmail: 'ann@other.example' }),
+        analysis(),
+        50,
+      ),
+    ]);
+    const n = h.searchTimes.length;
+    expect(n).toBeGreaterThanOrEqual(6);
+    // Timers jitter by a few ms, so check the total spread rather than each gap
+    const spread = h.searchTimes[n - 1]! - h.searchTimes[0]!;
+    expect(spread).toBeGreaterThanOrEqual((n - 1) * 40 - 20);
   });
 
   it('creates the custom deal property once', async () => {

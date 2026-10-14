@@ -50,11 +50,15 @@ interface HubSpotObject {
  */
 export class HubSpotCrm implements Crm {
   private portalId: string | undefined;
+  /** When the next search request may start; searches are spaced out to stay under HubSpot's per-second limit */
+  private nextSearchAt = 0;
 
   constructor(
     private readonly token: string,
     private readonly http: Fetch = fetch,
     private readonly base = 'https://api.hubapi.com',
+    /** HubSpot allows a few search requests per second per account; 250 ms apart keeps us under it */
+    private readonly searchSpacingMs = 250,
   ) {}
 
   async syncLead(lead: Lead, a: LeadAnalysis, score: number): Promise<CrmSyncResult> {
@@ -184,6 +188,12 @@ export class HubSpotCrm implements Crm {
   }
 
   private async searchOne(object: string, property: string, value: string) {
+    // Reserve the next slot before waiting, so concurrent jobs queue up one after another
+    const now = Date.now();
+    const slot = Math.max(now, this.nextSearchAt);
+    this.nextSearchAt = slot + this.searchSpacingMs;
+    if (slot > now) await new Promise((r) => setTimeout(r, slot - now));
+
     const res = await this.call<{ results: HubSpotObject[] }>('POST', `/crm/v3/objects/${object}/search`, {
       filterGroups: [{ filters: [{ propertyName: property, operator: 'EQ', value }] }],
       properties: ['email', 'firstname', 'lastname', 'jobtitle', 'phone', 'company', 'domain', 'name'],
