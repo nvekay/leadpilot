@@ -1,0 +1,15 @@
+# Render's free plan stops the API after 15 idle minutes, which would also pause the queue worker.
+# A ping every 10 minutes keeps it running (one service fits in Render's 750 free hours a month).
+# /health/live does not touch the database, so the serverless Postgres can still sleep.
+name: Keep API awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl --fail --silent --show-error --max-time 90 --retry 2 https://leadpilot-api.onrender.com/health/live

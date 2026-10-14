@@ -1,0 +1,57 @@
+# Render Blueprint: the API (with its queue worker) and Redis, both on the free plan.
+# Postgres is external (Neon), so DATABASE_URL is entered when the Blueprint is created.
+services:
+  - type: web
+    name: leadpilot-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health/live
+    autoDeploy: true
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: leadpilot-redis
+          property: connectionString
+      # Secrets and per-deployment values: Render asks for these when the Blueprint is created
+      - key: DATABASE_URL
+        sync: false
+      - key: API_INTERNAL_KEY
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: HUBSPOT_TOKEN
+        sync: false
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: SLACK_CHANNEL_ID
+        sync: false
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      # Public demo settings
+      - key: MAIL_FROM
+        value: Northwind Studio <onboarding@resend.dev>
+      - key: MAIL_REDIRECT_TO
+        value: delivered@resend.dev
+      - key: SEED_DEMO
+        value: 'true'
+      - key: DEMO_LIMIT_PER_HOUR
+        value: '10'
+      - key: DEMO_LIMIT_PER_DAY
+        value: '300'
+
+  - type: keyvalue
+    name: leadpilot-redis
+    plan: free
+    region: frankfurt
+    # BullMQ must never lose queue keys to eviction
+    maxmemoryPolicy: noeviction
+    # Reachable only from services on Render's private network
+    ipAllowList: []
