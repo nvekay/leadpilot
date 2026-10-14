@@ -4,11 +4,12 @@ import type { Queue } from 'bullmq';
 import { and, inArray, lt, notLike } from 'drizzle-orm';
 import { type Db, InjectDb } from '../db/db.module.js';
 import { leads } from '../db/schema.js';
+import { PipelineModule } from '../pipeline/pipeline.module.js';
+import { DemoSeeder, SEED_PREFIX } from './demo-seeder.js';
 
 export const MAINTENANCE_QUEUE = 'maintenance';
 /** Leads from the public website are kept this long; the seeded examples stay */
 export const DEMO_RETENTION_HOURS = 72;
-export const SEED_PREFIX = 'seed-';
 
 @Injectable()
 export class MaintenanceService {
@@ -57,8 +58,8 @@ export class MaintenanceScheduler implements OnApplicationBootstrap {
 }
 
 @Module({
-  imports: [BullModule.registerQueue({ name: MAINTENANCE_QUEUE })],
-  providers: [MaintenanceService, MaintenanceProcessor, MaintenanceScheduler],
-  exports: [MaintenanceService],
+  imports: [BullModule.registerQueue({ name: MAINTENANCE_QUEUE }), PipelineModule],
+  providers: [MaintenanceService, MaintenanceProcessor, MaintenanceScheduler, DemoSeeder],
+  exports: [MaintenanceService, DemoSeeder],
 })
 export class MaintenanceModule {}

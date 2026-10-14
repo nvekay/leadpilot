@@ -28,6 +28,11 @@ const schema = z.object({
   // Caps on leads from the public website: per visitor per hour, and for everyone per day
   DEMO_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
   DEMO_LIMIT_PER_DAY: z.coerce.number().int().positive().default(300),
+  // Store and process the sample emails on start (idempotent), so the public inbox is never empty
+  SEED_DEMO: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
   PIPELINE_RETRY_DELAY_MS: z.coerce.number().int().positive().default(5000),
 });
 

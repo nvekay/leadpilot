@@ -1,4 +1,5 @@
 import { leads } from '../src/db/schema.js';
+import { DemoSeeder } from '../src/maintenance/demo-seeder.js';
 import { MaintenanceService } from '../src/maintenance/maintenance.module.js';
 import { createTestApp, type TestApp } from './app.js';
 
@@ -29,4 +30,15 @@ it('removes visitors’ old demo leads and keeps seeded examples and real email'
   expect(removed).toBe(2);
   const left = await t.db.select({ externalId: leads.externalId }).from(leads);
   expect(left.map((l) => l.externalId).sort()).toEqual(['<m1@mail.example>', 'seed-saas-dashboard', 'spam-2']);
+});
+
+it('seeds the sample emails once, however many times the app starts', async () => {
+  const seeder = t.app.get(DemoSeeder);
+  expect(await seeder.seed()).toBe(8);
+  expect(await seeder.seed()).toBe(0);
+  const rows = await t.db.select({ externalId: leads.externalId }).from(leads);
+  expect(rows).toHaveLength(8);
+  expect(rows.every((r) => r.externalId.startsWith('seed-'))).toBe(true);
+  // Seeded examples survive the cleanup
+  expect(await t.app.get(MaintenanceService).cleanupDemoLeads(new Date(Date.now() + 30 * 24 * 3600_000))).toBe(0);
 });
