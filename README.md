@@ -103,7 +103,7 @@ property LeadPilot uses).
 ## Deployment
 
 All on free plans: the API (with its queue worker) and Redis on Render from [`render.yaml`](render.yaml), Postgres on
-Neon, the web app on Vercel. A GitHub Actions workflow pings the API every 10 minutes so Render does not put it to
+Neon, the web app on Vercel. A GitHub Actions workflow pings the API every 10 minutes from 06:00 to 22:00 UTC so Render does not put it to
 sleep; the ping skips the database, so Neon can still suspend when nobody uses the demo. Render's free Redis keeps
 data in memory only: a restart drops jobs that were waiting at that moment, while leads and their history are in
 Postgres. Sample leads are seeded on start, and visitors' demo leads are deleted after three days.
