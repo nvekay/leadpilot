@@ -1,11 +1,12 @@
 # Render's free plan stops the API after 15 idle minutes, which would also pause the queue worker.
-# A ping every 10 minutes keeps it running (one service fits in Render's 750 free hours a month).
+# A ping every 10 minutes from 06:00 to 22:00 UTC keeps it running through the day in Europe and the US.
+# That is about 500 of the 750 free Render hours a month, leaving room for another free service in the workspace.
 # /health/live does not touch the database, so the serverless Postgres can still sleep.
 name: Keep API awake
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/10 6-21 * * *'
   workflow_dispatch:
 
 jobs:
