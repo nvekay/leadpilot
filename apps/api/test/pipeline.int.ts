@@ -33,7 +33,8 @@ describe('lead pipeline', () => {
     expect(lead.crmDealId).toMatch(/^d-/);
     expect(lead.draftReply).toContain('Hi Rachel');
 
-    const { events } = await t.lead(id);
+    // The Slack request is its own job, so it can land just after the status changes
+    const events = await t.waitForEvent(id, 'approval_requested');
     expect(events.map((e) => e.type)).toEqual([
       'received',
       'analyzed',
@@ -76,7 +77,7 @@ describe('lead pipeline', () => {
 
     await t.waitForStatus(id, 'replied');
     expect(t.mailer.sent).toHaveLength(1);
-    expect(t.mailer.sent[0]?.to).toBe('rachel.moore@brightlane-demo.example');
+    expect(t.mailer.sent[0]?.to).toBe('rachel.moore@brightlane.example.com');
   });
 
   it('sends the edited text when the reviewer changes the draft', async () => {
@@ -127,6 +128,16 @@ describe('lead pipeline', () => {
     const { events } = await t.lead(id);
     expect(events.map((e) => e.type)).toContain('step_failed');
     expect(events.map((e) => e.type)).toContain('retried');
+  });
+
+  it('fails at once, without retries, when the CRM rejects the data', async () => {
+    t.crm.rejectWith = 400;
+    const id = await sendDemo('saas-dashboard');
+    const failed = await t.waitForStatus(id, 'failed');
+    expect(failed.failedStep).toBe('crm-sync');
+    expect(t.crm.calls).toBe(1);
+    const { events } = await t.lead(id);
+    expect(events.find((e) => e.type === 'step_failed')?.data).toMatchObject({ step: 'crm-sync', permanent: true });
   });
 
   it('keeps the lead awaiting approval when Slack is down', async () => {

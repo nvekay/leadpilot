@@ -70,7 +70,12 @@ function describe(e: LeadEvent): { title: string; detail?: React.ReactNode } {
     case 'reply_sent':
       return { title: 'Reply sent' };
     case 'step_failed':
-      return { title: `Step "${str(d.step)}" failed after 5 attempts`, detail: str(d.error) };
+      return {
+        title: d.permanent
+          ? `Step "${str(d.step)}" was rejected (not retried, a retry would fail the same way)`
+          : `Step "${str(d.step)}" failed after 5 attempts`,
+        detail: str(d.error),
+      };
     case 'retried':
       return { title: `Retried "${str(d.step)}" by ${str(d.by)}` };
     default:

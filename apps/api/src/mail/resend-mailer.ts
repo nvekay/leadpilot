@@ -29,7 +29,11 @@ export class ResendMailer implements Mailer {
         text: m.text,
       }),
     });
-    if (!res.ok) throw new Error(`Resend failed: ${res.status} ${(await res.text()).slice(0, 300)}`);
+    if (!res.ok) {
+      const error = new Error(`Resend failed: ${res.status} ${(await res.text()).slice(0, 300)}`);
+      // The status decides whether the queue retries (429, 5xx) or gives up at once (400, 401, 403, 422)
+      throw Object.assign(error, { status: res.status });
+    }
     const { id } = (await res.json()) as { id: string };
     return { id };
   }

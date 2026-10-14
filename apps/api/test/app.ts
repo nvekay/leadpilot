@@ -16,10 +16,14 @@ import { QUEUE } from '../src/pipeline/steps.js';
 export class TestCrm implements Crm {
   private readonly real = new FakeCrm();
   failuresLeft = 0;
+  /** HTTP status of a rejection that no retry can fix (e.g. 400 invalid email) */
+  rejectWith: number | null = null;
   calls = 0;
 
   async syncLead(...args: Parameters<Crm['syncLead']>) {
     this.calls++;
+    if (this.rejectWith)
+      throw Object.assign(new Error('HubSpot rejected the contact: invalid email'), { status: this.rejectWith });
     if (this.failuresLeft > 0) {
       this.failuresLeft--;
       throw new Error('HubSpot is down (503)');
@@ -105,6 +109,7 @@ export async function createTestApp() {
       const counters = await redis.keys('ratelimit:*');
       if (counters.length) await redis.del(...counters);
       crm.failuresLeft = 0;
+      crm.rejectWith = null;
       crm.calls = 0;
       mailer.sent.length = 0;
       notifier.fail = false;
@@ -112,6 +117,16 @@ export async function createTestApp() {
     async lead(id: string) {
       const res = await api.get(`/leads/${id}`);
       return res.body as { lead: Lead; events: { type: string; data: Record<string, unknown> }[] };
+    },
+    /** Polls until the lead's timeline has an event of this type (later steps run after the status changes) */
+    async waitForEvent(id: string, type: string) {
+      const deadline = Date.now() + 15_000;
+      for (;;) {
+        const { events } = await this.lead(id);
+        if (events.some((e) => e.type === type)) return events;
+        if (Date.now() > deadline) throw new Error(`Lead ${id} has no ${type} event`);
+        await new Promise((r) => setTimeout(r, 50));
+      }
     },
     /** Polls until the lead reaches one of the statuses (the worker runs in the background) */
     async waitForStatus(id: string, ...statuses: Lead['status'][]) {

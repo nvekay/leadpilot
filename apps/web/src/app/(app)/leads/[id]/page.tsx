@@ -96,8 +96,7 @@ export default async function LeadPage({ params }: { params: Promise<{ id: strin
           {lead.status === 'failed' && (
             <section className="rounded-xl border border-red-200 bg-red-50 p-4">
               <p className="flex items-center gap-2 text-sm font-semibold text-red-900">
-                <AlertTriangle className="size-4" aria-hidden /> The &quot;{lead.failedStep}&quot; step failed after 5
-                attempts
+                <AlertTriangle className="size-4" aria-hidden /> The &quot;{lead.failedStep}&quot; step failed
               </p>
               <p className="mt-1 text-sm break-words text-red-800">{lead.error}</p>
               <div className="mt-3">

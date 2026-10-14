@@ -98,7 +98,7 @@ const misses = results.flatMap((r) =>
 const report = [
   `# Extraction eval`,
   ``,
-  `${DATASET.length} labelled messages (8 languages and currencies, spam, support, prompt injection attempts).`,
+  `${DATASET.length} labelled messages (5 languages, 5 currencies, spam, support, transactional mail, prompt injection attempts).`,
   `Models: ${models.analyze} for extraction, ${models.draft} for reply drafts. Run ${new Date().toISOString().slice(0, 10)}.`,
   ``,
   `| Field | Correct | Accuracy |`,

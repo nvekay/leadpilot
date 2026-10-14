@@ -173,14 +173,15 @@ export class PipelineService {
   }
 
   /** Called when a step has used all its attempts */
-  async markFailed(leadId: string, step: Step, error: string) {
+  async markFailed(leadId: string, step: Step, error: string, permanent = false) {
     if (step === 'notify') {
       // A missed Slack message does not block the lead; it can still be approved in the app
       await this.leads.event(leadId, { type: 'approval_request_failed', actor: 'slack', data: { error } });
       return;
     }
     const lead = await this.leads.transition(leadId, STEP_PRECONDITION[step], 'failed', { error, failedStep: step });
-    if (lead) await this.leads.event(leadId, { type: 'step_failed', actor: 'system', data: { step, error } });
+    if (lead)
+      await this.leads.event(leadId, { type: 'step_failed', actor: 'system', data: { step, error, permanent } });
   }
 
   /** Puts a failed lead back where its failed step starts and runs that step again */

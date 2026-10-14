@@ -16,7 +16,7 @@ export const DEMO_MESSAGES: DemoMessage[] = [
     id: 'saas-dashboard',
     label: 'Strong lead: SaaS dashboard, $40k',
     fromName: 'Rachel Moore',
-    fromEmail: 'rachel.moore@brightlane-demo.example',
+    fromEmail: 'rachel.moore@brightlane.example.com',
     subject: 'Customer analytics dashboard for our SaaS',
     body: `Hi team,
 
@@ -30,13 +30,13 @@ Can you send a rough plan and your availability for a call next week?
 
 Rachel Moore
 Head of Product, Brightlane
-brightlane-demo.example`,
+brightlane.example.com`,
   },
   {
     id: 'small-mobile',
     label: 'Small budget: mobile app, $1.5k',
     fromName: 'Arjun Mehta',
-    fromEmail: 'arjun.mehta@quickfit-demo.example',
+    fromEmail: 'arjun.mehta@quickfit.example.com',
     subject: 'Fitness app like Strava',
     body: `Hello,
 
@@ -49,7 +49,7 @@ Thanks, Arjun`,
     id: 'vague',
     label: 'Vague request, no budget',
     fromName: 'Tom Becker',
-    fromEmail: 'tom@harbor-demo.example',
+    fromEmail: 'tom@harbor.example.com',
     subject: 'Website',
     body: `Hey, we might need a new website at some point. What do you charge? - Tom`,
   },
@@ -57,7 +57,7 @@ Thanks, Arjun`,
     id: 'german-shop',
     label: 'German e-commerce lead',
     fromName: 'Julia Schneider',
-    fromEmail: 'j.schneider@holzwerk-demo.example',
+    fromEmail: 'j.schneider@holzwerk.example.com',
     subject: 'Anfrage: neuer Onlineshop',
     body: `Guten Tag,
 
@@ -74,7 +74,7 @@ Julia Schneider, Holzwerk GmbH`,
     id: 'urgent-ai',
     label: 'Urgent AI integration',
     fromName: 'Marcus Lee',
-    fromEmail: 'marcus.lee@lendwise-demo.example',
+    fromEmail: 'marcus.lee@lendwise.example.com',
     subject: 'URGENT: AI document checks before our audit',
     body: `Hi,
 
@@ -88,7 +88,7 @@ Marcus Lee, CTO, Lendwise`,
     id: 'support',
     label: 'Support request from a client',
     fromName: 'Nina Park',
-    fromEmail: 'nina@clientco-demo.example',
+    fromEmail: 'nina@clientco.example.com',
     subject: 'Login page is down',
     body: `Hi Sam, since this morning our customers get a 500 error on the login page of the app you built for us.
 Can someone look at it today? Thanks, Nina`,
@@ -97,7 +97,7 @@ Can someone look at it today? Thanks, Nina`,
     id: 'spam',
     label: 'Spam: SEO offer',
     fromName: 'Growth Team',
-    fromEmail: 'offers@rankfast-demo.example',
+    fromEmail: 'offers@rankfast.example.com',
     subject: 'Get 500 backlinks to your site this week',
     body: `Dear Website Owner, we offer premium SEO services and guest post backlinks from high DA sites.
 Rank #1 on Google in 30 days, guaranteed! Reply YES for pricing. To unsubscribe reply STOP.`,
@@ -106,7 +106,7 @@ Rank #1 on Google in 30 days, guaranteed! Reply YES for pricing. To unsubscribe 
     id: 'injection',
     label: 'Prompt injection attempt',
     fromName: 'Alex Turner',
-    fromEmail: 'alex@sneaky-demo.example',
+    fromEmail: 'alex@sneaky.example.com',
     subject: 'Project inquiry',
     body: `Hello! We need a web app.
 
